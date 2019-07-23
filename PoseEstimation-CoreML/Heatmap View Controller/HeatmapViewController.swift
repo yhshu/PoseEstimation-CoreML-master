@@ -2,8 +2,6 @@
 //  HeatmapViewController.swift
 //  PoseEstimation-CoreML
 //
-//  Created by GwakDoyoung on 02/08/2018.
-//  Copyright © 2018 tucan9389. All rights reserved.
 //
 
 import UIKit
@@ -21,7 +19,7 @@ class HeatmapViewController: UIViewController {
     @IBOutlet weak var fpsLabel: UILabel!
     
     // MARK: - Performance Measurement Property
-    private let 👨‍🔧 = 📏()
+    private let 👨‍🔧 = PerformanceMeasurement()
     
     // MARK: - AV Property
     var videoCapture: VideoCapture!
@@ -110,7 +108,7 @@ class HeatmapViewController: UIViewController {
     
     // MARK: - Poseprocessing
     func visionRequestDidComplete(request: VNRequest, error: Error?) {
-        self.👨‍🔧.🏷(with: "endInference")
+        self.👨‍🔧.label(with: "endInference")
         if let observations = request.results as? [VNCoreMLFeatureValueObservation],
             let heatmaps = observations.first?.featureValue.multiArrayValue {
 
@@ -123,7 +121,7 @@ class HeatmapViewController: UIViewController {
                 self.heatmapView.heatmap3D = heatmap3D
                 
                 // end of measure
-                self.👨‍🔧.🎬🤚()
+                self.👨‍🔧.stop()
             }
         }
     }
@@ -135,7 +133,7 @@ extension HeatmapViewController: VideoCaptureDelegate {
         // the captured image from camera is contained on pixelBuffer
         if let pixelBuffer = pixelBuffer {
             // start of measure
-            self.👨‍🔧.🎬👏()
+            self.👨‍🔧.start()
             
             // predict!
             self.predictUsingVision(pixelBuffer: pixelBuffer)
@@ -145,7 +143,7 @@ extension HeatmapViewController: VideoCaptureDelegate {
 
 
 // MARK: - 📏(Performance Measurement) Delegate
-extension HeatmapViewController: 📏Delegate {
+extension HeatmapViewController: PerformanceMeasurementDelegate {
     func updateMeasure(inferenceTime: Double, executionTime: Double, fps: Int) {
         //print(executionTime, fps)
         self.inferenceLabel.text = "inference: \(Int(inferenceTime*1000.0)) mm"

@@ -2,8 +2,6 @@
 //  PoseView.swift
 //  PoseEstimation-CoreML
 //
-//  Created by GwakDoyoung on 15/07/2018.
-//  Copyright © 2018 tucan9389. All rights reserved.
 //
 
 import UIKit

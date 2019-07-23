@@ -2,8 +2,6 @@
 //  MovingAverageFilter.swift
 //  PoseEstimation-CoreML
 //
-//  Created by Doyoung Gwak on 26/06/2019.
-//  Copyright © 2019 tucan9389. All rights reserved.
 //
 
 import UIKit

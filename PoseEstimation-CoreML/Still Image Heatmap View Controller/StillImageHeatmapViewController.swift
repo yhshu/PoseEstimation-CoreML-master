@@ -2,8 +2,6 @@
 //  StillImageHeatmapViewController.swift
 //  PoseEstimation-CoreML
 //
-//  Created by Doyoung Gwak on 25/04/2019.
-//  Copyright © 2019 tucan9389. All rights reserved.
 //
 
 import UIKit
