@@ -1,6 +1,8 @@
 import UIKit
 
 extension UIImage {
+    /// 由图像获得像素缓存
+    /// - Returns: 内存中保存像素的图像缓存
     func pixelBufferFromImage() -> CVPixelBuffer {
         let ciimage = CIImage(image: self)
         //let cgimage = convertCIImageToCGImage(inputImage: ciimage!)
@@ -22,7 +24,7 @@ extension UIImage {
         let height = cgimage!.height
         
         var pxbuffer: CVPixelBuffer?
-        // if pxbuffer = nil, you will get status = -6661
+        // 如果 pxbuffer = nil, 获得 status = -6661
         var status = CVPixelBufferCreate(kCFAllocatorDefault, width, height,
                                          kCVPixelFormatType_32BGRA, options, &pxbuffer)
         status = CVPixelBufferLockBaseAddress(pxbuffer!, CVPixelBufferLockFlags(rawValue: 0));
@@ -48,4 +50,5 @@ extension UIImage {
         status = CVPixelBufferUnlockBaseAddress(pxbuffer!, CVPixelBufferLockFlags(rawValue: 0));
         return pxbuffer!;
         
-    }}
+    }
+}

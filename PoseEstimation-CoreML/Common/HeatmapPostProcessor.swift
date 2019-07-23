@@ -7,9 +7,14 @@
 import Foundation
 import CoreML
 
+// 在 Core ML 框架计算出热图后，进行热图的后处理
 class HeatmapPostProcessor {
+    
+    /// 将 Core ML 生成的 heatmap 转换为点
+    /// - Parameter heatmaps: 热图
+    /// - Returns: 预测点，每个通道以最大置信度作为预测结果
     func convertToPredictedPoints(from heatmaps: MLMultiArray) -> [PredictedPoint?] {
-        guard heatmaps.shape.count >= 3 else {    // 维数过高
+        guard heatmaps.shape.count >= 3 else {
             print("heatmap's shape is invalid. \(heatmaps.shape)")
             return []
         }
@@ -21,21 +26,23 @@ class HeatmapPostProcessor {
             return nil
         }
         
-        for k in 0..<keypoint_number {
-            for i in 0..<heatmap_w {
-                for j in 0..<heatmap_h {
+        for k in 0 ..< keypoint_number {
+            for i in 0 ..< heatmap_w {
+                for j in 0 ..< heatmap_h {
                     let index = k * (heatmap_w * heatmap_h) + i * (heatmap_h) + j
                     let confidence = heatmaps[index].doubleValue
-                    guard confidence > 0 else { continue }  // 跳过 confidence 为 0 的情况
+                    guard confidence > 0 else { continue }  // 跳过置信度为 0 的点
                     if n_kpoints[k] == nil ||
                         (n_kpoints[k] != nil && n_kpoints[k]!.maxConfidence < confidence) {
+                        // 如果 n_kpoints[k] 是空 或 置信度小于当前点
                         n_kpoints[k] = PredictedPoint(maxPoint: CGPoint(x: CGFloat(j), y: CGFloat(i)), maxConfidence: confidence)
                     }
                 }
             }
         }
         
-        // transpose to (1.0, 1.0)
+        // 坐标归一化
+        // (0.0, 0.0) 到 (1.0, 1.0) 范围内
         n_kpoints = n_kpoints.map { kpoint -> PredictedPoint? in
             if let kp = kpoint {
                 return PredictedPoint(maxPoint: CGPoint(x: (kp.maxPoint.x + 0.5) / CGFloat(heatmap_w),
@@ -49,6 +56,9 @@ class HeatmapPostProcessor {
         return n_kpoints
     }
     
+    /// 将 Core ML 生成的 heatmap 转换为数组
+    /// - Parameter heatmaps: 热图
+    /// - Returns: 存储多通道热图各点置信度的数组
     func convertTo3DArray(from heatmaps: MLMultiArray) -> Array<Array<Double>> {
         guard heatmaps.shape.count >= 3 else {
             print("heatmap's shape is invalid. \(heatmaps.shape)")
@@ -60,12 +70,12 @@ class HeatmapPostProcessor {
         
         var convertedHeatmap: Array<Array<Double>> = Array(repeating: Array(repeating: 0.0, count: heatmap_h), count: heatmap_w)
         
-        for k in 0..<keypoint_number {
-            for i in 0..<heatmap_w {
-                for j in 0..<heatmap_h {
+        for k in 0 ..< keypoint_number {
+            for i in 0 ..< heatmap_w {
+                for j in 0 ..< heatmap_h {
                     let index = k * (heatmap_w * heatmap_h) + i * (heatmap_h) + j
                     let confidence = heatmaps[index].doubleValue
-                    guard confidence > 0 else { continue }
+                    guard confidence > 0 else { continue }  // 跳过置信度为 0 的点
                     convertedHeatmap[j][i] += confidence
                 }
             }

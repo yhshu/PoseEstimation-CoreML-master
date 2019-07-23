@@ -76,18 +76,21 @@ class JointViewController: UIViewController {
     // MARK: - Setup Core ML
     func setUpModel() {
         if let visionModel = try? VNCoreMLModel(for: EstimationModel().model) {
+            // VNCoreMLModel: 用于与 Vision 请求一同使用的 Core ML 模型的容器
             self.visionModel = visionModel
+            // 使用 CoreML 模型处理图像的图像分析请求
             request = VNCoreMLRequest(model: visionModel, completionHandler: visionRequestDidComplete)
-            request?.imageCropAndScaleOption = .scaleFill
-        } else {
-            fatalError()
+            // 可选设置，通知 Vision 算法如何缩放输入图像
+            request?.imageCropAndScaleOption = .scaleFill // 按比例填充
+        } else {         // Core ML 模型设置失败
+            fatalError() // 无条件打印给定消息并停止执行
         }
     }
     
     // MARK: - SetUp Video
     func setUpCamera() {
         videoCapture = VideoCapture()
-        videoCapture.delegate = self
+        videoCapture.videoCaptureDelegate = self
         videoCapture.fps = 30
         videoCapture.setUp(sessionPreset: .vga640x480) { success in
             

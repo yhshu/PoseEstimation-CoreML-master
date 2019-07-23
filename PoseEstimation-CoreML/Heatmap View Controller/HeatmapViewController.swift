@@ -77,7 +77,7 @@ class HeatmapViewController: UIViewController {
     // MARK: - SetUp Video
     func setUpCamera() {
         videoCapture = VideoCapture()
-        videoCapture.delegate = self
+        videoCapture.videoCaptureDelegate = self
         videoCapture.fps = 30
         videoCapture.setUp(sessionPreset: .vga640x480) { success in
             
