@@ -12,27 +12,27 @@ import CoreMedia
 class StillImageHeatmapViewController: UIViewController {
     
     // MARK: - UI Properties
-    @IBOutlet weak var mainImageView: UIImageView!
-    @IBOutlet weak var heatmapView: DrawingHeatmapView!
-    @IBOutlet weak var guideLabel: UILabel!
+    @IBOutlet weak var mainImageView: UIImageView!      // 原图
+    @IBOutlet weak var heatmapView: DrawingHeatmapView! // 生成的热图
+    @IBOutlet weak var guideLabel: UILabel!             // 含有提示信息的标签
     
     let galleryPicker = UIImagePickerController()
     
     // MARK: - ML Properties
-    // Core ML model
+    // CoreML 模型
     typealias EstimationModel = model_cpm
     
-    // Preprocess and Inference
+    // 预处理和推断
     var request: VNCoreMLRequest?
     var visionModel: VNCoreMLModel?
     
-    // Postprocess
+    // 后处理
     var postProcessor: HeatmapPostProcessor = HeatmapPostProcessor()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // setup the model
+        // 设置 CoreML 模型
         setUpModel()
     }
     
@@ -51,7 +51,7 @@ class StillImageHeatmapViewController: UIViewController {
         openPicker()
     }
     
-    // opens the image picker for photo library
+    // 打开图像选择器，在照片图库中选择图片
     func openPicker() {
         galleryPicker.sourceType = .photoLibrary
         galleryPicker.delegate = self
@@ -77,12 +77,12 @@ extension StillImageHeatmapViewController: UINavigationControllerDelegate, UIIma
     }
 }
 
-// MARK: - Core ML
+// MARK: - CoreML
 extension StillImageHeatmapViewController {
     // MARK: - Inferencing
     func predictUsingVision(uiImage: UIImage) {
         guard let request = request, let cgImage = uiImage.cgImage else { fatalError() }
-        // vision framework configures the input size of image following our model's input configuration automatically
+        // 视觉框架根据我们模型的输入配置，自动配置图像的输入大小
         let handler = VNImageRequestHandler(cgImage: cgImage, orientation: uiImage.convertImageOrientation())
         try? handler.perform([request])
     }
@@ -92,10 +92,10 @@ extension StillImageHeatmapViewController {
         if let observations = request.results as? [VNCoreMLFeatureValueObservation],
             let heatmaps = observations.first?.featureValue.multiArrayValue {
             
-            // convert heatmap to Array<Array<Double>>
+            // 将热图转换为 Double 型的二维数组 Array<Array<Double>>
             let heatmap3D = postProcessor.convertTo3DArray(from: heatmaps)
 
-            // must run on main thread
+            // 必须运行在主线程
             self.heatmapView.heatmap3D = heatmap3D
             
         }

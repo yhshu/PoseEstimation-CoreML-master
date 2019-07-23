@@ -11,42 +11,42 @@ import CoreMedia
 class HeatmapViewController: UIViewController {
 
     // MARK: - UI Properties
-    @IBOutlet weak var videoPreview: UIView!
-    @IBOutlet weak var heatmapView: DrawingHeatmapView!
+    @IBOutlet weak var videoPreview: UIView!            // 视频预览
+    @IBOutlet weak var heatmapView: DrawingHeatmapView! // 生成的热图
     
-    @IBOutlet weak var inferenceLabel: UILabel!
-    @IBOutlet weak var etimeLabel: UILabel!
-    @IBOutlet weak var fpsLabel: UILabel!
+    @IBOutlet weak var inferenceLabel: UILabel!         // 显示推断时间的标签
+    @IBOutlet weak var etimeLabel: UILabel!             // 显示执行时间的标签
+    @IBOutlet weak var fpsLabel: UILabel!               // 显示 FPS 的标签
     
     // MARK: - Performance Measurement Property
-    private let 👨‍🔧 = PerformanceMeasurement()
+    private let performance = PerformanceMeasurement()
     
     // MARK: - AV Property
     var videoCapture: VideoCapture!
     
     // MARK: - ML Properties
-    // Core ML model
+    // CoreML 模型
     typealias EstimationModel = model_cpm
     
-    // Preprocess and Inference
+    // 预处理和推断
     var request: VNCoreMLRequest?
     var visionModel: VNCoreMLModel?
     
-    // Postprocess
+    // 后处理
     var postProcessor: HeatmapPostProcessor = HeatmapPostProcessor()
     
     // MARK: - View Controller Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // setup the model
+        // 设置 CoreML 模型
         setUpModel()
         
-        // setup camera
+        // 设置相机
         setUpCamera()
         
-        // setup delegate for performance measurement
-        👨‍🔧.delegate = self
+        // 设置性能测量的代理
+        performance.delegate = self
     }
     
     override func didReceiveMemoryWarning() {
@@ -108,20 +108,18 @@ class HeatmapViewController: UIViewController {
     
     // MARK: - Poseprocessing
     func visionRequestDidComplete(request: VNRequest, error: Error?) {
-        self.👨‍🔧.label(with: "endInference")
+        self.performance.label(with: "endInference")
         if let observations = request.results as? [VNCoreMLFeatureValueObservation],
             let heatmaps = observations.first?.featureValue.multiArrayValue {
 
-            // convert heatmap to Array<Array<Double>>
+            // 将热图转换为 Array<Array<Double>>
             let heatmap3D = postProcessor.convertTo3DArray(from: heatmaps)
             
             DispatchQueue.main.sync {
-                
-                // 
                 self.heatmapView.heatmap3D = heatmap3D
                 
-                // end of measure
-                self.👨‍🔧.stop()
+                // 测量结束
+                self.performance.stop()
             }
         }
     }
@@ -130,24 +128,24 @@ class HeatmapViewController: UIViewController {
 // MARK: - VideoCaptureDelegate
 extension HeatmapViewController: VideoCaptureDelegate {
     func videoCapture(_ capture: VideoCapture, didCaptureVideoFrame pixelBuffer: CVPixelBuffer?, timestamp: CMTime) {
-        // the captured image from camera is contained on pixelBuffer
+        // 摄像头捕获的图像包含在 pixelBuffer 中
         if let pixelBuffer = pixelBuffer {
-            // start of measure
-            self.👨‍🔧.start()
+            // 开始测量
+            self.performance.start()
             
-            // predict!
+            // 预测
             self.predictUsingVision(pixelBuffer: pixelBuffer)
         }
     }
 }
 
 
-// MARK: - 📏(Performance Measurement) Delegate
+// MARK: - Performance Measurement Delegate
 extension HeatmapViewController: PerformanceMeasurementDelegate {
+    
     func updateMeasure(inferenceTime: Double, executionTime: Double, fps: Int) {
-        //print(executionTime, fps)
-        self.inferenceLabel.text = "inference: \(Int(inferenceTime*1000.0)) mm"
-        self.etimeLabel.text = "execution: \(Int(executionTime*1000.0)) mm"
-        self.fpsLabel.text = "fps: \(fps)"
+        self.inferenceLabel.text = "Inference: \(Int(inferenceTime * 1000.0)) mm"
+        self.etimeLabel.text = "Execution: \(Int(executionTime * 1000.0)) mm"
+        self.fpsLabel.text = "FPS: \(fps)"
     }
 }

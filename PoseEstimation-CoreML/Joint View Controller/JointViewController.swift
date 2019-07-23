@@ -9,52 +9,53 @@ import Vision
 import CoreMedia
 
 class JointViewController: UIViewController {
-    public typealias DetectObjectsCompletion = ([PredictedPoint?]?, Error?) -> Void
+    public typealias DetectObjectsCompletion = ([PredictedPoint?]?, Error?) -> Void // 函数类型
     
     // MARK: - UI Properties
-    @IBOutlet weak var videoPreview: UIView!
-    @IBOutlet weak var jointView: DrawingJointView!
-    @IBOutlet weak var labelsTableView: UITableView!
+    @IBOutlet weak var videoPreview: UIView!            // 图像预览
+    @IBOutlet weak var jointView: DrawingJointView!     // 生成的人体关节视图
+    @IBOutlet weak var labelsTableView: UITableView!    // 显示关节结点标签的表格
     
-    @IBOutlet weak var inferenceLabel: UILabel!
-    @IBOutlet weak var etimeLabel: UILabel!
-    @IBOutlet weak var fpsLabel: UILabel!
+    @IBOutlet weak var inferenceLabel: UILabel!         // 显示推断时间的标签
+    @IBOutlet weak var etimeLabel: UILabel!             // 显示执行时间的标签
+    @IBOutlet weak var fpsLabel: UILabel!               // 显示 FPS 的q标签
     
     // MARK: - Performance Measurement Property
-    private let performanceMeasurement = PerformanceMeasurement()
+    private let performanceMeasurement = PerformanceMeasurement()  // 用于性能测量的对象
     
     // MARK: - AV Property
-    var videoCapture: VideoCapture!
+    var videoCapture: VideoCapture!                     // 用于视频捕捉的对象
     
     // MARK: - ML Properties
-    // Core ML model
-    typealias EstimationModel = model_cpm
+    typealias EstimationModel = model_cpm               // CoreML 模型
     
-    // Preprocess and Inference
+    // 预处理与推断
     var request: VNCoreMLRequest?
     var visionModel: VNCoreMLModel?
     
-    // Postprocess
-    var postProcessor: HeatmapPostProcessor = HeatmapPostProcessor()
+    // 后处理
+    var postProcessor: HeatmapPostProcessor = HeatmapPostProcessor()  // 热图后处理
     var mvfilters: [MovingAverageFilter] = []
     
-    // Inference Result Data
+    // 推断结果数据
     private var tableData: [PredictedPoint?] = []
     
     // MARK: - View Controller Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // setup the model
+        // 设置 CoreML 模型
         setUpModel()
         
-        // setup camera
+        // 设置相机
         setUpCamera()
         
-        // setup tableview datasource on bottom
+        // 为底部的关节信息表格设置数据源
+        // 包括预测的各关节的位置以及置信度
         labelsTableView.dataSource = self
         
-        // setup delegate for performance measurement
+        // 设置性能测量的代理
+        // 性能测量包括推断时间、执行时间、FPS
         performanceMeasurement.delegate = self
     }
     
@@ -91,13 +92,13 @@ class JointViewController: UIViewController {
         videoCapture.setUp(sessionPreset: .vga640x480) { success in
             
             if success {
-                // add preview view on the layer
+                // 在图层上添加预览视图
                 if let previewLayer = self.videoCapture.previewLayer {
                     self.videoPreview.layer.addSublayer(previewLayer)
                     self.resizePreviewLayer()
                 }
                 
-                // start video preview when setup is done
+                // 当设置完成后开始视频预览
                 self.videoCapture.start()
             }
         }
@@ -116,12 +117,12 @@ class JointViewController: UIViewController {
 // MARK: - VideoCaptureDelegate
 extension JointViewController: VideoCaptureDelegate {
     func videoCapture(_ capture: VideoCapture, didCaptureVideoFrame pixelBuffer: CVPixelBuffer?, timestamp: CMTime) {
-        // the captured image from camera is contained on pixelBuffer
+        // 摄像头捕获的图像包含在 pixelBuffer 中
         if let pixelBuffer = pixelBuffer {
-            // start of measure
+            // 开始测量
             self.performanceMeasurement.start()
             
-            // predict!
+            // 进行预测
             self.predictUsingVision(pixelBuffer: pixelBuffer)
         }
     }
@@ -131,7 +132,7 @@ extension JointViewController {
     // MARK: - Inferencing
     func predictUsingVision(pixelBuffer: CVPixelBuffer) {
         guard let request = request else { fatalError() }
-        // vision framework configures the input size of image following our model's input configuration automatically
+        // 视觉框架根据我们模型的输入配置，自动配置图像的输入大小
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer)
         try? handler.perform([request])
     }
@@ -145,7 +146,7 @@ extension JointViewController {
             /* =================================================================== */
             /* ========================= post-processing ========================= */
             
-            /* ------------------ convert heatmap to point array ----------------- */
+            /* ----------------------- 将 heatmap 转换为点阵------------------------ */
             var predictedPoints = postProcessor.convertToPredictedPoints(from: heatmaps)
             
             /* --------------------- moving average filter ----------------------- */
@@ -159,25 +160,25 @@ extension JointViewController {
             /* =================================================================== */
             
             /* =================================================================== */
-            /* ======================= display the results ======================= */
+            /* ============================= 展示结果 ============================= */
             DispatchQueue.main.sync {
-                // draw line
+                // 画线
                 self.jointView.bodyPoints = predictedPoints
                 
-                // show key points description
-                self.showKeypointsDescription(with: predictedPoints)
+                // 展示关键点的描述
+                self.showKeyPointsDescription(with: predictedPoints)
                 
-                // end of measure
+                // 测量结束
                 self.performanceMeasurement.stop()
             }
             /* =================================================================== */
         } else {
-            // end of measure
+            // 测量结束
             self.performanceMeasurement.stop()
         }
     }
     
-    func showKeypointsDescription(with n_kpoints: [PredictedPoint?]) {
+    func showKeyPointsDescription(with n_kpoints: [PredictedPoint?]) {
         self.tableData = n_kpoints
         self.labelsTableView.reloadData()
     }
@@ -186,9 +187,10 @@ extension JointViewController {
 // MARK: - UITableView Data Source
 extension JointViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return tableData.count// > 0 ? 1 : 0
+        return tableData.count  // > 0 ? 1 : 0
     }
     
+    /// 更新表格中的人体关节信息，包括预测的关节位置和概率
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath)
         cell.textLabel?.text = Constant.pointLabels[indexPath.row]
@@ -202,12 +204,13 @@ extension JointViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - 📏(Performance Measurement) Delegate
+// MARK: - Performance Measurement Delegate
 extension JointViewController: PerformanceMeasurementDelegate {
+    
+    /// 更新测量数据，包括推断时间、执行时间、FPS
     func updateMeasure(inferenceTime: Double, executionTime: Double, fps: Int) {
-        //print(executionTime, fps)
-        self.inferenceLabel.text = "inference: \(Int(inferenceTime*1000.0)) mm"
-        self.etimeLabel.text = "execution: \(Int(executionTime*1000.0)) mm"
-        self.fpsLabel.text = "fps: \(fps)"
+        self.inferenceLabel.text = "Inference: \(Int(inferenceTime * 1000.0)) mm" // 更新推断时间
+        self.etimeLabel.text = "Execution: \(Int(executionTime * 1000.0)) mm"     // 更新执行时间
+        self.fpsLabel.text = "FPS: \(fps)"                                        // 更新 FPS
     }
 }

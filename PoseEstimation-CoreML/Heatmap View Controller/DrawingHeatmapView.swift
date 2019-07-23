@@ -9,8 +9,8 @@ import CoreML
 
 class DrawingHeatmapView: UIView {
     
-    var heatmap3D: Array<Array<Double>>? = nil {
-        didSet {
+    var heatmap3D: Array<Array<Double>>? = nil {  // 二维 Double 数组
+        didSet {  // 在新值被设置之后立即调用
             self.setNeedsDisplay()
         }
     }
@@ -19,7 +19,7 @@ class DrawingHeatmapView: UIView {
         
         if let ctx = UIGraphicsGetCurrentContext() {
             
-            ctx.clear(rect);
+            ctx.clear(rect);   // 清除现有图形
             
             guard let heatmap = self.heatmap3D else { return }
             

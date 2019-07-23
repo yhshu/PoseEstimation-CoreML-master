@@ -9,13 +9,13 @@ import CoreML
 
 class HeatmapPostProcessor {
     func convertToPredictedPoints(from heatmaps: MLMultiArray) -> [PredictedPoint?] {
-        guard heatmaps.shape.count >= 3 else {
+        guard heatmaps.shape.count >= 3 else {    // 维数过高
             print("heatmap's shape is invalid. \(heatmaps.shape)")
             return []
         }
-        let keypoint_number = heatmaps.shape[0].intValue
-        let heatmap_w = heatmaps.shape[1].intValue
-        let heatmap_h = heatmaps.shape[2].intValue
+        let keypoint_number = heatmaps.shape[0].intValue   // 关键点数量
+        let heatmap_w = heatmaps.shape[1].intValue         // 热图宽度
+        let heatmap_h = heatmaps.shape[2].intValue         // 热图高度
         
         var n_kpoints = (0..<keypoint_number).map { _ -> PredictedPoint? in
             return nil
