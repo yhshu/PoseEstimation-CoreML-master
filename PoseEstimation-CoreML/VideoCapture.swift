@@ -17,14 +17,14 @@ public class VideoCapture: NSObject {
     public weak var delegate: VideoCaptureDelegate?         // 视频捕捉代理
     public var fps = 15
     
-    let captureSession = AVCaptureSession()
-    let videoOutput = AVCaptureVideoDataOutput()
-    let queue = DispatchQueue(label: "com.shuyiheng.camera-queue")
-    // DispatchQueue 在应用程序的主线程或后台线程上串行或同时管理任务执行的对象
+    let captureSession = AVCaptureSession()      // 管理捕获活动并协调从输入设备到捕获输出的数据流的对象
+    let videoOutput = AVCaptureVideoDataOutput() // 捕获输出，用于记录视频并提供对视频帧的访问以进行处理
+    let queue = DispatchQueue(label: "com.shuyiheng.camera-queue") // 在应用程序的主线程或后台线程上串行或同时管理任务执行的对象
     
     var lastTimestamp = CMTime()  // 表示时间值的结构，例如时间戳或持续时间
     
     /// 设置
+    /// - Parameter sessionPreset: 表示输出的质量等级或比特率
     public func setUp(sessionPreset: AVCaptureSession.Preset = .vga640x480,
                       completion: @escaping (Bool) -> Void) {
         self.setUpCamera(sessionPreset: sessionPreset, completion: { success in
@@ -33,14 +33,17 @@ public class VideoCapture: NSObject {
     }
     
     /// 设置摄像头
+    /// - Parameter sessionPreset: 表示输出的质量等级或比特率
     func setUpCamera(sessionPreset: AVCaptureSession.Preset, completion: @escaping (_ success: Bool) -> Void) {
         
-        captureSession.beginConfiguration()
-        captureSession.sessionPreset = sessionPreset
+        captureSession.beginConfiguration()  // 以原子方式进行的一组配置更改的开始
+        captureSession.sessionPreset = sessionPreset // 设置质量等级或比特率
         
         guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                           for: .video,
                                                           position: .back)
+            // 参数：请求捕获的设备类型，请求捕获的媒体类型，捕获设备相对于系统硬件（正面或背面）请求的位置
+            // 返回：指定参数条件下的系统默认设备，没有可用设备返回 nil
         else {
             print("Error: no video devices available")
             return
@@ -50,22 +53,23 @@ public class VideoCapture: NSObject {
             print("Error: could not create AVCaptureDeviceInput")
             return
         }
+        // AVCaptureDeviceInput: 捕获输入，用于将捕获设备中的媒体提供给捕获会话
         
-        if captureSession.canAddInput(videoInput) {
+        if captureSession.canAddInput(videoInput) {  // 判断接收器是否可以添加给定输入
             captureSession.addInput(videoInput)
         }
         
-        let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.videoGravity = AVLayerVideoGravity.resizeAspect
-        previewLayer.connection?.videoOrientation = .portrait
+        let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession) // 核心动画层，用于显示捕获的视频
+        previewLayer.videoGravity = AVLayerVideoGravity.resizeAspect // 设置视频在播放器视图边界内的显示方式：播放器应保留视频的宽高比，并使视频适合图层的范围
+        previewLayer.connection?.videoOrientation = .portrait  // 视频方向：垂直定向
         self.previewLayer = previewLayer
         
         let settings: [String : Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: kCVPixelFormatType_32BGRA),
-        ]
+        ]  // 缓冲使用的像素格式类型
         
         videoOutput.videoSettings = settings
-        videoOutput.alwaysDiscardsLateVideoFrames = true
+        videoOutput.alwaysDiscardsLateVideoFrames = true  // 视频帧迟到时被丢弃
         videoOutput.setSampleBufferDelegate(self, queue: queue)
         if captureSession.canAddOutput(videoOutput) {
             captureSession.addOutput(videoOutput)
@@ -75,7 +79,7 @@ public class VideoCapture: NSObject {
         // Need to set this _after_ addOutput()!
         videoOutput.connection(with: AVMediaType.video)?.videoOrientation = .portrait
         
-        captureSession.commitConfiguration()
+        captureSession.commitConfiguration()  // 提交一组配置修改
         
         let success = true
         completion(success)

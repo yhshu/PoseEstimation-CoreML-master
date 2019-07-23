@@ -41,7 +41,7 @@ class JointViewController: UIViewController {
     private var tableData: [PredictedPoint?] = []
     
     // MARK: - View Controller Life Cycle
-    override func viewDidLoad() {
+    override func viewDidLoad() {  // 在控制器的视图载入到内存后调用
         super.viewDidLoad()
         
         // 设置 CoreML 模型

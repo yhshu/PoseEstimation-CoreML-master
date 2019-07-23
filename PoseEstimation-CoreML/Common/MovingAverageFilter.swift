@@ -7,12 +7,15 @@
 import UIKit
 
 extension CGPoint {
+    
+    /// CGPoint 的加法
     static func +(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
         return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
     
+    /// CGPoint 的除法
     static func /(lhs: CGPoint, rhs: CGFloat) -> CGPoint {
-        guard rhs != 0.0 else { return lhs }
+        guard rhs != 0.0 else { return lhs }   // 注意除数不能为0
         return CGPoint(x: lhs.x / rhs, y: lhs.y / rhs)
     }
 }

@@ -24,9 +24,9 @@ class HeatmapPostProcessor {
         for k in 0..<keypoint_number {
             for i in 0..<heatmap_w {
                 for j in 0..<heatmap_h {
-                    let index = k*(heatmap_w*heatmap_h) + i*(heatmap_h) + j
+                    let index = k * (heatmap_w * heatmap_h) + i * (heatmap_h) + j
                     let confidence = heatmaps[index].doubleValue
-                    guard confidence > 0 else { continue }
+                    guard confidence > 0 else { continue }  // 跳过 confidence 为 0 的情况
                     if n_kpoints[k] == nil ||
                         (n_kpoints[k] != nil && n_kpoints[k]!.maxConfidence < confidence) {
                         n_kpoints[k] = PredictedPoint(maxPoint: CGPoint(x: CGFloat(j), y: CGFloat(i)), maxConfidence: confidence)
@@ -38,8 +38,8 @@ class HeatmapPostProcessor {
         // transpose to (1.0, 1.0)
         n_kpoints = n_kpoints.map { kpoint -> PredictedPoint? in
             if let kp = kpoint {
-                return PredictedPoint(maxPoint: CGPoint(x: (kp.maxPoint.x+0.5)/CGFloat(heatmap_w),
-                                                        y: (kp.maxPoint.y+0.5)/CGFloat(heatmap_h)),
+                return PredictedPoint(maxPoint: CGPoint(x: (kp.maxPoint.x + 0.5) / CGFloat(heatmap_w),
+                                                        y: (kp.maxPoint.y + 0.5) / CGFloat(heatmap_h)),
                                       maxConfidence: kp.maxConfidence)
             } else {
                 return nil
@@ -63,7 +63,7 @@ class HeatmapPostProcessor {
         for k in 0..<keypoint_number {
             for i in 0..<heatmap_w {
                 for j in 0..<heatmap_h {
-                    let index = k*(heatmap_w*heatmap_h) + i*(heatmap_h) + j
+                    let index = k * (heatmap_w * heatmap_h) + i * (heatmap_h) + j
                     let confidence = heatmaps[index].doubleValue
                     guard confidence > 0 else { continue }
                     convertedHeatmap[j][i] += confidence
