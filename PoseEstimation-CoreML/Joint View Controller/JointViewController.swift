@@ -147,12 +147,12 @@ extension JointViewController {
             let heatmaps = observations.first?.featureValue.multiArrayValue {
             
             /* =================================================================== */
-            /* ========================= post-processing ========================= */
+            /* ============================== 后处理 ============================== */
             
-            /* ----------------------- 将 heatmap 转换为点阵------------------------ */
+            /* ----------------------- 将 heatmap 转换为预测点----------------------- */
             var predictedPoints = postProcessor.convertToPredictedPoints(from: heatmaps)
             
-            /* --------------------- moving average filter ----------------------- */
+            /* -------------------------- 移动平均 过滤器 --------------------------- */
             if predictedPoints.count != mvfilters.count {
                 mvfilters = predictedPoints.map { _ in MovingAverageFilter(limit: 3) }
             }
@@ -181,6 +181,8 @@ extension JointViewController {
         }
     }
     
+    /// 展示关键点的描述
+    /// - Parameter with: 预测点数组
     func showKeyPointsDescription(with n_kpoints: [PredictedPoint?]) {
         self.tableData = n_kpoints
         self.labelsTableView.reloadData()
