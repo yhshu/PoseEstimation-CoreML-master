@@ -19,7 +19,7 @@ class PerformanceMeasurement {
     var index: Int = -1                             // 测量数组的索引，记录最近 30 次
     var measurements: [Dictionary<String, Double>]  // 测量数组
     
-    /// 初始化存储测量数据的数组
+    // MARK: 初始化存储测量数据的数组
     init() {
         let measurement = [
             "start": CACurrentMediaTime(),          // 当前的绝对时间，以秒为单位
@@ -29,7 +29,7 @@ class PerformanceMeasurement {
         // 数组初始化，measurements 作为元素重复 30 项
     }
     
-    /// 开始测量
+    // MARK: 开始测量
     func start() {
         index += 1
         index %= 30
@@ -38,7 +38,7 @@ class PerformanceMeasurement {
         label(for: index, with: "start")
     }
     
-    /// 停止测量
+    // MARK: 停止测量
     func stop() {
         label(for: index, with: "end")
         
@@ -87,7 +87,6 @@ class PerformanceMeasurement {
 class MeasureLogView: UIView {
     let etimeLabel = UILabel(frame: .zero)
     let fpsLabel = UILabel(frame: .zero)
-    
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

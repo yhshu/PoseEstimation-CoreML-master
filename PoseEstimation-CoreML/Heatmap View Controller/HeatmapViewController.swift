@@ -106,7 +106,7 @@ class HeatmapViewController: UIViewController {
         try? handler.perform([request])
     }
     
-    // MARK: - Poseprocessing
+    // MARK: - PoseProcessing
     func visionRequestDidComplete(request: VNRequest, error: Error?) {
         self.performance.label(with: "endInference")
         if let observations = request.results as? [VNCoreMLFeatureValueObservation],

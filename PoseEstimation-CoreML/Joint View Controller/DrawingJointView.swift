@@ -9,7 +9,7 @@ import UIKit
 // 绘制人体关节
 class DrawingJointView: UIView {
     
-    // 当使用 PoseEstimationForMobile 的模型时，数组大小必须是 <#14#>
+    // 当使用 PoseEstimationForMobile 的模型时，数组大小必须是 <#14#>，对应 14 个关节
     private var keyPointLabelBGViews: [UIView] = []
 
     public var bodyPoints: [PredictedPoint?] = [] {
@@ -23,7 +23,7 @@ class DrawingJointView: UIView {
         self.subviews.forEach({ $0.removeFromSuperview() })
         
         keyPointLabelBGViews = (0..<keypointsCount).map { index in
-            let color = Constant.colors[index%Constant.colors.count]
+            let color = Constant.colors[index % Constant.colors.count]
             let view = UIView(frame: CGRect(x: 0, y: 0, width: 4, height: 4))
             view.backgroundColor = color
             view.clipsToBounds = false

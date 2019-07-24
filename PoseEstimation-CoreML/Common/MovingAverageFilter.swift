@@ -6,7 +6,7 @@
 
 import UIKit
 
-// 为 CGPoint 扩展运算，用于移动平均的计算
+// 为 Core Graphics 库中的 CGPoint 扩展运算，用于移动平均的计算
 extension CGPoint {
     
     /// CGPoint 的加法
@@ -29,12 +29,15 @@ extension CGPoint {
 
 // 移动平均过滤器
 // 移动平均 (moving average) 是分析时间序列数据的工具
+// 作用是消除短期波动的影响，反映序列的长期趋势或周期
 class MovingAverageFilter {
     var elements: [PredictedPoint?] = []  // 预测点数组
     private var limit: Int
     
     init(limit: Int) {
-        guard limit > 0 else { fatalError("limit should be uppered than 0 in MovingAverageFilter init(limit:)") }
+        guard limit > 0 else {
+            fatalError("limit should be uppered than 0 in MovingAverageFilter init(limit:)")
+        }
         self.elements = []  // 清空数组
         self.limit = limit
     }

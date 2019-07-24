@@ -29,7 +29,7 @@ class JointViewController: UIViewController {
     // MARK: - ML Properties
     typealias EstimationModel = model_cpm               // CoreML 模型
     
-    // 预处理与推断
+    // MARK: 预处理与推断
     var request: VNCoreMLRequest?
     var visionModel: VNCoreMLModel?
     
@@ -78,8 +78,10 @@ class JointViewController: UIViewController {
         if let visionModel = try? VNCoreMLModel(for: EstimationModel().model) {
             // VNCoreMLModel: 用于与 Vision 请求一同使用的 Core ML 模型的容器
             self.visionModel = visionModel
-            // 使用 CoreML 模型处理图像的图像分析请求
+            
+            // 使用 Core ML 模型处理图像的图像分析请求
             request = VNCoreMLRequest(model: visionModel, completionHandler: visionRequestDidComplete)
+            
             // 可选设置，通知 Vision 算法如何缩放输入图像
             request?.imageCropAndScaleOption = .scaleFill // 按比例填充
         } else {         // Core ML 模型设置失败
@@ -135,7 +137,7 @@ extension JointViewController {
     // MARK: - Inferencing
     func predictUsingVision(pixelBuffer: CVPixelBuffer) {
         guard let request = request else { fatalError() }
-        // 视觉框架根据我们模型的输入配置，自动配置图像的输入大小
+        // Vision 框架根据我们模型的输入配置，自动配置图像的输入大小
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer)
         try? handler.perform([request])
     }
@@ -143,28 +145,28 @@ extension JointViewController {
     // MARK: - Postprocessing
     func visionRequestDidComplete(request: VNRequest, error: Error?) {
         self.performanceMeasurement.label(with: "endInference")
+        
         if let observations = request.results as? [VNCoreMLFeatureValueObservation],
             let heatmaps = observations.first?.featureValue.multiArrayValue {
             
-            /* =================================================================== */
-            /* ============================== 后处理 ============================== */
-            
-            /* ----------------------- 将 heatmap 转换为预测点----------------------- */
+            // 开始 heatmap 的后处理
             var predictedPoints = postProcessor.convertToPredictedPoints(from: heatmaps)
             
-            /* -------------------------- 移动平均 过滤器 --------------------------- */
+            // 移动平均过滤器
             if predictedPoints.count != mvfilters.count {
                 mvfilters = predictedPoints.map { _ in MovingAverageFilter(limit: 3) }
             }
             for (predictedPoint, filter) in zip(predictedPoints, mvfilters) {
+                // zip 创建由两个基础序列构建的一个由 pair 组成的序列
                 filter.add(element: predictedPoint)
             }
             predictedPoints = mvfilters.map { $0.averagedValue() }
-            /* =================================================================== */
             
-            /* =================================================================== */
-            /* ============================= 展示结果 ============================= */
+            // 展示结果，使用调度队列有序执行
             DispatchQueue.main.sync {
+                // DispatchQueue.main 获取与当前进程的主线程关联的调度队列
+                // sync 向队列提交一项工作，并在该块执行完成后返回
+                
                 // 画线
                 self.jointView.bodyPoints = predictedPoints
                 
@@ -174,7 +176,6 @@ extension JointViewController {
                 // 测量结束
                 self.performanceMeasurement.stop()
             }
-            /* =================================================================== */
         } else {
             // 测量结束
             self.performanceMeasurement.stop()
@@ -195,13 +196,13 @@ extension JointViewController: UITableViewDataSource {
         return tableData.count  // > 0 ? 1 : 0
     }
     
-    /// 更新表格中的人体关节信息，包括预测的关节位置和概率
+    /// 更新表格中的人体关节信息，包括预测的关节位置和置信度
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath)
         cell.textLabel?.text = Constant.pointLabels[indexPath.row]
         if let body_point = tableData[indexPath.row] {
-            let pointText: String = "\(String(format: "%.3f", body_point.maxPoint.x)), \(String(format: "%.3f", body_point.maxPoint.y))"
-            cell.detailTextLabel?.text = "(\(pointText)), [\(String(format: "%.3f", body_point.maxConfidence))]"
+            let pointText: String = "\(String(format: "%.3f", body_point.maxPoint.x)), \(String(format: "%.3f", body_point.maxPoint.y))"  // 位置
+            cell.detailTextLabel?.text = "(\(pointText)), [\(String(format: "%.3f", body_point.maxConfidence))]"  // 置信度
         } else {
             cell.detailTextLabel?.text = "N/A"
         }

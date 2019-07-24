@@ -29,8 +29,8 @@ class DrawingHeatmapView: UIView {
             let w = size.width / CGFloat(heatmap_w)
             let h = size.height / CGFloat(heatmap_h)
             
-            for j in 0..<heatmap_w {
-                for i in 0..<heatmap_h {
+            for j in 0 ..< heatmap_w {
+                for i in 0 ..< heatmap_h {
                     let value = heatmap[i][j]
                     let alpha: CGFloat = CGFloat(value)
                     guard alpha > 0 else { continue; }

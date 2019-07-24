@@ -1,6 +1,5 @@
 //
 //  VideoCapture.swift
-//  Awesome ML
 //
 //
 

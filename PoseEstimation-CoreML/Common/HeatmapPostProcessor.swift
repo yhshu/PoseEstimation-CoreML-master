@@ -11,7 +11,7 @@ import CoreML
 class HeatmapPostProcessor {
     
     /// 将 Core ML 生成的 heatmap 转换为点
-    /// - Parameter heatmaps: 热图
+    /// - Parameter heatmaps: 热图；MLMultiArray 是用于模型的特征输入或特征输出的多维数组
     /// - Returns: 预测点，每个通道以最大置信度作为预测结果
     func convertToPredictedPoints(from heatmaps: MLMultiArray) -> [PredictedPoint?] {
         guard heatmaps.shape.count >= 3 else {
@@ -22,7 +22,7 @@ class HeatmapPostProcessor {
         let heatmap_w = heatmaps.shape[1].intValue         // 热图宽度
         let heatmap_h = heatmaps.shape[2].intValue         // 热图高度
         
-        var n_kpoints = (0..<keypoint_number).map { _ -> PredictedPoint? in
+        var n_kpoints = (0 ..< keypoint_number).map { _ -> PredictedPoint? in
             return nil
         }
         
@@ -30,7 +30,7 @@ class HeatmapPostProcessor {
             for i in 0 ..< heatmap_w {
                 for j in 0 ..< heatmap_h {
                     let index = k * (heatmap_w * heatmap_h) + i * (heatmap_h) + j
-                    let confidence = heatmaps[index].doubleValue
+                    let confidence = heatmaps[index].doubleValue  // 置信度
                     guard confidence > 0 else { continue }  // 跳过置信度为 0 的点
                     if n_kpoints[k] == nil ||
                         (n_kpoints[k] != nil && n_kpoints[k]!.maxConfidence < confidence) {
